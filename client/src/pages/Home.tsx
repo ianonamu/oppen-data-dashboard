@@ -3,33 +3,17 @@
  * Hero section with background image, KPI cards, charts
  */
 import { useEffect, useState } from "react";
-import { TrendingUp, TrendingDown, Users, Building2, Briefcase, Activity } from "lucide-react";
+import { TrendingUp, TrendingDown, Users, Building2, Briefcase, Activity, RefreshCw } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, LineChart, Line
 } from "recharts";
+import { useBefolkningPerAr, useBefolkningPerRegion } from "@/hooks/useScbData";
 
 const HERO_BG = "https://d2xsxph8kpxj0f.cloudfront.net/310519663488160097/LqMu4BsmJe2cLXeSw3FwLe/dashboard-hero-RH4MNjhFyPYFZQKjJoD8t6.webp";
-
-// Simulerad SCB-data (i verkligheten hämtas detta via SCB:s öppna API)
-const befolkningData = [
-  { år: "2018", antal: 10175214 },
-  { år: "2019", antal: 10327589 },
-  { år: "2020", antal: 10379295 },
-  { år: "2021", antal: 10415811 },
-  { år: "2022", antal: 10521556 },
-  { år: "2023", antal: 10612086 },
-  { år: "2024", antal: 10703000 },
-];
-
-const kommunData = [
-  { namn: "Stockholm", befolkning: 975551 },
-  { namn: "Göteborg", befolkning: 583056 },
-  { namn: "Malmö", befolkning: 357069 },
-  { namn: "Uppsala", befolkning: 242346 },
-  { namn: "Linköping", befolkning: 167681 },
-  { namn: "Västerås", befolkning: 155309 },
-];
+const TEAL = "oklch(0.72 0.17 162)";
+const CARD_BG = "oklch(0.17 0.012 264)";
+const BORDER = "1px solid oklch(1 0 0 / 10%)";
 
 const arbetsloshetData = [
   { månad: "Jan", procent: 8.4 },
@@ -113,6 +97,14 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export default function Home() {
+  const { data: befolkningData, loading: bLoading } = useBefolkningPerAr();
+  const { data: kommunData, loading: kLoading } = useBefolkningPerRegion();
+
+  // Formatera data för diagram
+  const befChartData = befolkningData.map(d => ({ år: d.year, antal: d.value }));
+  const kommunChartData = kommunData.slice(0, 6).map(d => ({ namn: d.region, befolkning: d.value }));
+  const senasteBef = befolkningData.at(-1)?.value ?? 10703000;
+
   return (
     <div className="min-h-screen">
       {/* Hero */}
@@ -138,7 +130,7 @@ export default function Home() {
       <div className="px-8 py-6 space-y-6">
         {/* KPI Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <KpiCard title="Total befolkning" value={10703000} unit="pers." trend="up" trendValue="+0.9%" icon={Users} delay={0} />
+          <KpiCard title="Total befolkning" value={senasteBef} unit="pers." trend="up" trendValue="+0.9%" icon={Users} delay={0} />
           <KpiCard title="Antal kommuner" value={290} unit="st" trend="up" trendValue="stabil" icon={Building2} delay={100} />
           <KpiCard title="Sysselsättningsgrad" value={68} unit="%" trend="up" trendValue="+1.2%" icon={Briefcase} delay={200} />
           <KpiCard title="BNP tillväxt" value={2} unit="%" trend="up" trendValue="+0.4%" icon={Activity} delay={300} />
@@ -153,12 +145,12 @@ export default function Home() {
                 <h2 className="text-sm font-semibold text-foreground" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                   Befolkningsutveckling
                 </h2>
-                <p className="text-xs text-muted-foreground">2018–2024 · Källa: SCB</p>
+                <p className="text-xs text-muted-foreground">2015–2024 · Källa: SCB (live)</p>
               </div>
               <span className="text-xs bg-primary/15 text-primary px-2 py-0.5 rounded-full">+5.2%</span>
             </div>
             <ResponsiveContainer width="100%" height={180}>
-              <AreaChart data={befolkningData}>
+              <AreaChart data={bLoading ? [] : befChartData}>
                 <defs>
                   <linearGradient id="befolkGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="oklch(0.72 0.17 162)" stopOpacity={0.3} />
@@ -208,11 +200,14 @@ export default function Home() {
             </div>
           </div>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={kommunData} layout="vertical">
+              <BarChart data={kLoading ? [] : kommunChartData} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 6%)" horizontal={false} />
               <XAxis type="number" tick={{ fill: "oklch(0.60 0.015 264)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
               <YAxis type="category" dataKey="namn" tick={{ fill: "oklch(0.85 0.005 264)", fontSize: 12 }} axisLine={false} tickLine={false} width={80} />
               <Tooltip content={<CustomTooltip />} />
+              {kLoading && (
+                <text x="50%" y="50%" textAnchor="middle" fill="oklch(0.60 0.015 264)" fontSize={12}>Hämtar data…</text>
+              )}
               <Bar dataKey="befolkning" fill="oklch(0.72 0.17 162)" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
