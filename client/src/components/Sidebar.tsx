@@ -18,6 +18,7 @@ const navItems = [
   { href: "/befolkning", label: "Befolkning", icon: Users },
   { href: "/kommuner", label: "Kommuner", icon: MapPin },
   { href: "/arbetsmarknad", label: "Arbetsmarknad", icon: Briefcase },
+  { href: "/malmo", label: "Malmö", icon: MapPin },
   { href: "/om", label: "Om projektet", icon: Info },
 ];
 

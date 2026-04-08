@@ -9,6 +9,7 @@ import Befolkning from "./pages/Befolkning";
 import Kommuner from "./pages/Kommuner";
 import Arbetsmarknad from "./pages/Arbetsmarknad";
 import OmProjektet from "./pages/OmProjektet";
+import Malmo from "./pages/Malmo";
 import Sidebar from "./components/Sidebar";
 
 function Router() {
@@ -21,6 +22,7 @@ function Router() {
           <Route path={"/befolkning"} component={Befolkning} />
           <Route path={"/kommuner"} component={Kommuner} />
           <Route path={"/arbetsmarknad"} component={Arbetsmarknad} />
+          <Route path={"/malmo"} component={Malmo} />
           <Route path={"/om"} component={OmProjektet} />
           <Route path={"/404"} component={NotFound} />
           <Route component={NotFound} />
